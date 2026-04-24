@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ちゃばの生存確認。</title>
+  <meta name="description" content="日常とライフスタイルをつづるブログ" />
+
+  <!-- ===== フォント読み込み ===== -->
+  <!-- 日本語: Meiryo → Hiragino → sans-serif の順でフォールバック -->
+  <!-- 英語/数字: DM Sans（モダンで読みやすいサンセリフ体） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+
+  <!-- ===== Supabase SDK ===== -->
+  <!-- コメント・リアクションのDB操作に使用 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* ===================================================
+       CSS変数 — カラーパレットとタイポグラフィの定義
+       ここを変更するだけでサイト全体の色調が変わります
+    =================================================== */
+    :root {
+      --color-bg:       #faf8f5;
+      --color-surface:  #f5f1eb;
+      --color-border:   #e8e0d4;
+      --color-text:     #2c2825;
+      --color-muted:    #9a8f85;
+      --color-accent:   #b8a99a;
+      --color-link:     #7a6a5e;
+      --color-error:    #c0392b;
+      --color-success:  #6a9e7f;
+
+      /* 見出し: DM Sans（英数字）+ Meiryo（日本語） */
+      --font-display: 'DM Sans', 'Meiryo', 'Hiragino Kaku Gothic ProN', sans-serif;
+      /* 本文: Meiryo を優先 */
+      --font-body:    'Meiryo', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+
+      --max-width:       860px;
+      --spacing-section: 80px;
+    }
+
+    /* ===================================================
+       リセット & ベーススタイル
+    =================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.9;
+      animation: fadeInPage 0.8s ease forwards;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ===================================================
+       ヘッダー
+    =================================================== */
+    .site-header {
+      padding: 32px 0 28px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .site-header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .site-title {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 3vw, 24px);
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--color-text);
+      transition: opacity 0.2s;
+    }
+
+    .site-title:hover { opacity: 0.7; }
+
+    .social-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .social-links a {
+      font-family: var(--font-display);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      color: var(--color-muted);
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    /* ホバー時の下線アニメーション */
+    .social-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 0; height: 1px;
+      background: var(--color-text);
+      transition: width 0.25s ease;
+    }
+
+    .social-links a:hover { color: var(--color-text); }
+    .social-links a:hover::after { width: 100%; }
+
+    /* ===================================================
+       ヒーローセクション
+    =================================================== */
+    .hero { padding: 72px 0 64px; text-align: center; }
+
+    .hero-heading {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 300;
+      font-style: italic;
+      letter-spacing: 0.04em;
+      line-height: 1.3;
+      color: var(--color-text);
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      color: var(--color-muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 32px;
+    }
+
+    .hero-divider {
+      width: 40px; height: 1px;
+      background: var(--color-accent);
+      margin: 0 auto 32px;
+    }
+
+    .hero-desc {
+      max-width: 480px;
+      margin: 0 auto;
+      font-size: 14px;
+      color: var(--color-muted);
+      line-height: 2;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===================================================
+       記事一覧セクション
+    =================================================== */
+    .posts-section { padding: 0 0 var(--spacing-section); }
+
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: var(--color-border);
+    }
+
+    /* 2列グリッド（スマホは1列） */
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+    }
+
+    /* ===== 記事カード ===== */
+    .post-card {
+      background: var(--color-surface);
+      padding: 36px 32px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ホバー時の左端ライン装飾 */
+    .post-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: var(--color-accent);
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 0.3s ease;
+    }
+
+    .post-card:hover { background: var(--color-border); }
+    .post-card:hover::before { transform: scaleY(1); }
+
+    .post-category {
+      font-family: var(--font-display);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .post-title {
+      font-family: var(--font-body);
+      font-size: 17px;
+      font-weight: 500;
+      line-height: 1.6;
+      color: var(--color-text);
+      margin-bottom: 12px;
+      letter-spacing: 0.03em;
+    }
+
+    .post-excerpt {
+      font-size: 13px;
+      color: var(--color-muted);
+      line-height: 1.9;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .post-date {
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: var(--color-accent);
+      letter-spacing: 0.1em;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    /* ===================================================
+       リアクションボタンエリア
+       各記事カード下部に 👍 ❤️ 😊 ボタンを表示
+    =================================================== */
+    .reactions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .reaction-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      background: var(--color-bg);
+      color: var(--color-muted);
+      font-size: 13px;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+      line-height: 1;
+    }
+
+    /* リアクション済みの状態 */
+    .reaction-btn.active {
+      border-color: var(--color-accent);
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+
+    .reaction-btn:hover {
+      border-color: var(--color-accent);
+      color: var(--color-text);
+    }
+
+    .reaction-count {
+      font-size: 12px;
+      min-width: 14px;
+      text-align: center;
+    }
+
+    /* ===================================================
+       コメントトグルボタン
+    =================================================== */
+    .comment-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--color-muted);
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .comment-toggle:hover { color: var(--color-text); }
+
+    .comment-badge {
+      background: var(--color-border);
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-family: var(--font-display);
+    }
+
+    /* ===================================================
+       コメントエリア（アコーディオン形式）
+       .open クラスで表示/非表示を切り替え
+    =================================================== */
+    .comment-area {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .comment-area.open { display: block; }
+
+    /* ===== コメント一覧 ===== */
+    .comment-list { list-style: none; margin-bottom: 20px; }
+
+    .comment-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--color-border);
+      animation: fadeInComment 0.4s ease;
+    }
+
+    @keyframes fadeInComment {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .comment-item:last-child { border-bottom: none; }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .comment-username {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+
+    .comment-time {
+      font-family: var(--font-display);
+      font-size: 11px;
+      color: var(--color-accent);
+    }
+
+    .comment-body {
+      font-size: 13px;
+      color: var(--color-muted);
+      line-height: 1.8;
+      word-break: break-word;
+    }
+
+    /* コメントがない場合 */
+    .comment-empty {
+      font-size: 13px;
+      color: var(--color-accent);
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    /* ===== コメント投稿フォーム ===== */
+    .comment-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 入力欄の共通スタイル */
+    .comment-form input,
+    .comment-form textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 13px;
+      line-height: 1.6;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+
+    .comment-form input:focus,
+    .comment-form textarea:focus {
+      outline: none;
+      border-color: var(--color-accent);
+    }
+
+    /* バリデーションエラー時 */
+    .comment-form input.error,
+    .comment-form textarea.error { border-color: var(--color-error); }
+
+    .field-error {
+      font-size: 11px;
+      color: var(--color-error);
+      display: none;
+      margin-top: -4px;
+    }
+
+    .comment-form textarea { min-height: 80px; }
+
+    /* 投稿ボタン */
+    .comment-submit {
+      align-self: flex-end;
+      padding: 8px 20px;
+      background: var(--color-text);
+      color: var(--color-bg);
+      border: none;
+      border-radius: 4px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .comment-submit:hover { opacity: 0.75; }
+    .comment-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* 送信完了メッセージ */
+    .submit-success {
+      font-size: 12px;
+      color: var(--color-success);
+      text-align: right;
+      display: none;
+    }
+
+    /* ===================================================
+       フッター
+    =================================================== */
+    .site-footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--color-border);
+      text-align: center;
+    }
+
+    .footer-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-style: italic;
+      color: var(--color-muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      list-style: none;
+      margin-bottom: 24px;
+    }
+
+    .footer-links a {
+      font-family: var(--font-display);
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--color-muted);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--color-text); }
+
+    .footer-copy {
+      font-size: 11px;
+      color: var(--color-accent);
+      letter-spacing: 0.1em;
+    }
+
+    /* ===================================================
+       レスポンシブ対応 — 600px以下
+    =================================================== */
+    @media (max-width: 600px) {
+      .site-header .container { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .social-links { gap: 14px; }
+      .hero { padding: 48px 0 40px; }
+      .posts-grid { grid-template-columns: 1fr; }
+      .reaction-btn { font-size: 12px; padding: 4px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================================================
+       ヘッダー
+       各リンクの href="" をご自身のURLに変更してください
+  =================================================== -->
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-title">ちゃばの生存確認。</a>
+      <nav aria-label="外部リンク">
+        <ul class="social-links">
+          <li><a href="https://note.com/" target="_blank" rel="noopener noreferrer">note</a></li>
+          <li><a href="https://youtube.com/" target="_blank" rel="noopener noreferrer">YouTube</a></li>
+          <li><a href="https://gravity.tv/" target="_blank" rel="noopener noreferrer">GRAVITY</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+
+  <!-- ===================================================
+       ヒーローセクション
+       テキストはご自由に書き換えてください
+  =================================================== -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-heading">still here, still going.</h1>
+      <p class="hero-sub">日常 / ライフスタイル / きろく</p>
+      <div class="hero-divider" aria-hidden="true"></div>
+      <p class="hero-desc">
+        生きてます。ちゃんと。<br />
+        日々のできごと、好きなもの、ふと思ったことを<br />
+        ここに置いていきます。
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ===================================================
+       記事一覧
+       各カードの data-post-id は記事ごとに一意の値にしてください
+       Notion連携時はJSで動的生成に差し替えます
+  =================================================== -->
+  <main class="posts-section">
+    <div class="container">
+      <p class="section-label">latest posts</p>
+      <div class="posts-grid">
+
+        <!-- 記事カード 1 -->
+        <article class="post-card" data-post-id="post-001">
+          <p class="post-category">日常</p>
+          <h2 class="post-title">朝の支度に30分かけるようになったら、一日がすこし変わった話</h2>
+          <p class="post-excerpt">ずっとギリギリまで寝てたのに、なんとなく早起きを試してみたら思いのほか続いてる。コーヒーを飲みながら何もしない時間のこと。</p>
+          <time class="post-date" datetime="2025-04-20">April 20, 2025</time>
+          <!-- リアクションボタン -->
+          <div class="reactions" role="group" aria-label="リアクション">
+            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
+          </div>
+          <!-- コメントトグル -->
+          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
+          <!-- コメントエリア（デフォルト非表示） -->
+          <div class="comment-area" aria-hidden="true">
+            <ul class="comment-list"></ul>
+            <p class="comment-empty">まだコメントはありません</p>
+            <div class="comment-form">
+              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
+              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
+              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
+              <span class="field-error" data-for="comment">コメントを入力してください</span>
+              <button class="comment-submit">投稿する</button>
+              <p class="submit-success">✓ コメントを投稿しました</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 記事カード 2 -->
+        <article class="post-card" data-post-id="post-002">
+          <p class="post-category">おきにいり</p>
+          <h2 class="post-title">最近ずっとリピートしてるプレイリストと、その季節感について</h2>
+          <p class="post-excerpt">音楽って聴いてた場所や時間まで一緒に記憶される気がする。春になるたびに聴きたくなる曲たちをまとめてみた。</p>
+          <time class="post-date" datetime="2025-04-15">April 15, 2025</time>
+          <div class="reactions" role="group" aria-label="リアクション">
+            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
+          </div>
+          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
+          <div class="comment-area" aria-hidden="true">
+            <ul class="comment-list"></ul>
+            <p class="comment-empty">まだコメントはありません</p>
+            <div class="comment-form">
+              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
+              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
+              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
+              <span class="field-error" data-for="comment">コメントを入力してください</span>
+              <button class="comment-submit">投稿する</button>
+              <p class="submit-success">✓ コメントを投稿しました</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 記事カード 3 -->
+        <article class="post-card" data-post-id="post-003">
+          <p class="post-category">たべもの</p>
+          <h2 class="post-title">週末だけ丁寧にご飯を作る、という選択をしてみた</h2>
+          <p class="post-excerpt">平日は適当でいい。でも週末の昼くらいはちゃんと作ってみようと思って。最近ハマってる一品と、そのレシピの話。</p>
+          <time class="post-date" datetime="2025-04-10">April 10, 2025</time>
+          <div class="reactions" role="group" aria-label="リアクション">
+            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
+          </div>
+          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
+          <div class="comment-area" aria-hidden="true">
+            <ul class="comment-list"></ul>
+            <p class="comment-empty">まだコメントはありません</p>
+            <div class="comment-form">
+              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
+              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
+              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
+              <span class="field-error" data-for="comment">コメントを入力してください</span>
+              <button class="comment-submit">投稿する</button>
+              <p class="submit-success">✓ コメントを投稿しました</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 記事カード 4 -->
+        <article class="post-card" data-post-id="post-004">
+          <p class="post-category">きもち</p>
+          <h2 class="post-title">「なんとなく疲れた」が続くとき、わたしがすること3つ</h2>
+          <p class="post-excerpt">特に何かあったわけじゃないのに、なんか重い日ってある。そういうとき用の小さなルーティンを、自分なりにまとめてみた。</p>
+          <time class="post-date" datetime="2025-04-04">April 4, 2025</time>
+          <div class="reactions" role="group" aria-label="リアクション">
+            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
+            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
+          </div>
+          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
+          <div class="comment-area" aria-hidden="true">
+            <ul class="comment-list"></ul>
+            <p class="comment-empty">まだコメントはありません</p>
+            <div class="comment-form">
+              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
+              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
+              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
+              <span class="field-error" data-for="comment">コメントを入力してください</span>
+              <button class="comment-submit">投稿する</button>
+              <p class="submit-success">✓ コメントを投稿しました</p>
+            </div>
+          </div>
+        </article>
+
+      </div><!-- /.posts-grid -->
+    </div><!-- /.container -->
+  </main>
+
+
+  <!-- ===================================================
+       フッター
+  =================================================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-title">ちゃばの生存確認。</p>
+      <ul class="footer-links">
+        <li><a href="https://note.com/" target="_blank" rel="noopener noreferrer">note</a></li>
+        <li><a href="https://youtube.com/" target="_blank" rel="noopener noreferrer">YouTube</a></li>
+        <li><a href="https://gravity.tv/" target="_blank" rel="noopener noreferrer">GRAVITY</a></li>
+      </ul>
+      <p class="footer-copy">&copy; 2025 ちゃばの生存確認。</p>
+    </div>
+  </footer>
+
+
+  <!-- ===================================================
+       JavaScript — コメント・リアクション機能
+  =================================================== -->
+  <script>
+  /* =====================================================
+     ⚠️ Supabase 接続設定（必ず書き換えてください）
+     取得場所: Supabase管理画面 → Settings → API
+  ===================================================== */
+  const SUPABASE_URL      = 'YOUR_SUPABASE_URL';      // 例: https://xxxx.supabase.co
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 例: eyJhbGci...
+
+  /* =====================================================
+     Supabase クライアントの初期化
+     URLが未設定（プレースホルダーのまま）の場合は
+     DB機能をスキップし、表示のみで動作します
+  ===================================================== */
+  const isSupabaseReady =
+    SUPABASE_URL      !== 'YOUR_SUPABASE_URL' &&
+    SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+
+  // isSupabaseReady が false の場合は db = null のままにする
+  let db = null;
+  if (isSupabaseReady) {
+    db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  /* =====================================================
+     ユーティリティ: 投稿日時を「○分前」形式に変換
+  ===================================================== */
+  function timeAgo(dateStr) {
+    const diff = (Date.now() - new Date(dateStr)) / 1000;
+    if (diff < 60)         return 'たった今';
+    if (diff < 3600)       return `${Math.floor(diff / 60)}分前`;
+    if (diff < 86400)      return `${Math.floor(diff / 3600)}時間前`;
+    if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}日前`;
+    return new Date(dateStr).toLocaleDateString('ja-JP');
+  }
+
+  /* =====================================================
+     XSS対策: ユーザー入力のHTMLエスケープ
+     表示前に必ずこの関数を通す
+  ===================================================== */
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /* =====================================================
+     コメントをHTMLリスト要素として生成
+  ===================================================== */
+  function createCommentEl(comment) {
+    const li = document.createElement('li');
+    li.className = 'comment-item';
+    li.innerHTML = `
+      <div class="comment-header">
+        <span class="comment-username">${escapeHtml(comment.username)}</span>
+        <time class="comment-time">${timeAgo(comment.created_at)}</time>
+      </div>
+      <p class="comment-body">${escapeHtml(comment.body)}</p>
+    `;
+    return li;
+  }
+
+  /* =====================================================
+     各記事カードの初期化
+     コメント・リアクションの取得とイベント設定を行う
+  ===================================================== */
+  async function initCard(card) {
+    const postId = card.dataset.postId;
+
+    // DOM要素の取得
+    const commentList   = card.querySelector('.comment-list');
+    const commentEmpty  = card.querySelector('.comment-empty');
+    const commentBadge  = card.querySelector('.comment-badge');
+    const commentToggle = card.querySelector('.comment-toggle');
+    const commentArea   = card.querySelector('.comment-area');
+    const inputUsername = card.querySelector('.input-username');
+    const inputComment  = card.querySelector('.input-comment');
+    const submitBtn     = card.querySelector('.comment-submit');
+    const successMsg    = card.querySelector('.submit-success');
+    const errUsername   = card.querySelector('[data-for="username"]');
+    const errComment    = card.querySelector('[data-for="comment"]');
+    const reactionBtns  = card.querySelectorAll('.reaction-btn');
+
+    /* ----- コメント一覧を取得して表示 ----- */
+    async function loadComments() {
+      // Supabase未設定時はスキップ
+      if (!db) return;
+
+      const { data, error } = await db
+        .from('comments')
+        .select('*')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+
+      if (error) { console.error('コメント取得エラー:', error); return; }
+
+      commentList.innerHTML = '';
+
+      if (data.length === 0) {
+        commentEmpty.style.display = 'block';
+      } else {
+        commentEmpty.style.display = 'none';
+        data.forEach(c => commentList.appendChild(createCommentEl(c)));
+      }
+
+      commentBadge.textContent = data.length;
+    }
+
+    /* ----- リアクション数を取得して表示 ----- */
+    async function loadReactions() {
+      // Supabase未設定時はスキップ
+      if (!db) return;
+
+      const { data, error } = await db
+        .from('reactions')
+        .select('emoji, count')
+        .eq('post_id', postId);
+
+      if (error) { console.error('リアクション取得エラー:', error); return; }
+
+      reactionBtns.forEach(btn => {
+        const emoji = btn.dataset.emoji;
+        const row   = data.find(r => r.emoji === emoji);
+        btn.querySelector('.reaction-count').textContent = row ? row.count : 0;
+      });
+    }
+
+    /* ----- コメントエリアの開閉トグル ----- */
+    commentToggle.addEventListener('click', () => {
+      const isOpen = commentArea.classList.toggle('open');
+      commentToggle.setAttribute('aria-expanded', isOpen);
+      commentArea.setAttribute('aria-hidden', !isOpen);
+    });
+
+    /* ----- コメント投稿 ----- */
+    submitBtn.addEventListener('click', async () => {
+      const username = inputUsername.value.trim();
+      const body     = inputComment.value.trim();
+
+      // バリデーション（未入力チェック）
+      let hasError = false;
+
+      if (!username) {
+        inputUsername.classList.add('error');
+        errUsername.style.display = 'block';
+        hasError = true;
+      } else {
+        inputUsername.classList.remove('error');
+        errUsername.style.display = 'none';
+      }
+
+      if (!body) {
+        inputComment.classList.add('error');
+        errComment.style.display = 'block';
+        hasError = true;
+      } else {
+        inputComment.classList.remove('error');
+        errComment.style.display = 'none';
+      }
+
+      if (hasError) return;
+
+      // Supabase未設定時は投稿できない旨を表示
+      if (!db) {
+        alert('Supabaseの設定が完了していないため投稿できません。\nSUPABASE_URL と SUPABASE_ANON_KEY を設定してください。');
+        return;
+      }
+
+      // 送信中はボタンを無効化
+      submitBtn.disabled = true;
+      submitBtn.textContent = '投稿中…';
+
+      // Supabase の comments テーブルに挿入
+      const { error } = await db.from('comments').insert({
+        post_id:    postId,
+        username:   username,
+        body:       body,
+        created_at: new Date().toISOString()
+      });
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = '投稿する';
+
+      if (error) {
+        console.error('コメント投稿エラー:', error);
+        alert('投稿に失敗しました。時間をおいて再試行してください。');
+        return;
+      }
+
+      // 投稿成功: フォームをリセット
+      inputUsername.value = '';
+      inputComment.value  = '';
+      successMsg.style.display = 'block';
+      setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
+
+      await loadComments();
+    });
+
+    /* ----- リアクションボタン（トグル動作） ----- */
+    reactionBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        // Supabase未設定時はスキップ
+        if (!db) return;
+
+        const emoji    = btn.dataset.emoji;
+        const isActive = btn.classList.toggle('active');
+
+        // upsert_reaction RPC を呼び出し（+1 or -1）
+        const { error } = await db.rpc('upsert_reaction', {
+          p_post_id: postId,
+          p_emoji:   emoji,
+          p_delta:   isActive ? 1 : -1
+        });
+
+        if (error) {
+          console.error('リアクションエラー:', error);
+          btn.classList.toggle('active'); // エラー時は元に戻す
+          return;
+        }
+
+        await loadReactions();
+      });
+    });
+
+    // 初回データ読み込み
+    await loadComments();
+    await loadReactions();
+  }
+
+  /* =====================================================
+     ページ読み込み後に全カードを初期化
+  ===================================================== */
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.post-card').forEach(card => {
+      initCard(card).catch(err => console.error('初期化エラー:', err));
+    });
+  });
+  </script>
+
+</body>
+</html>
