@@ -552,122 +552,18 @@
 
   <!-- ===================================================
        記事一覧
-       各カードの data-post-id は記事ごとに一意の値にしてください
-       Notion連携時はJSで動的生成に差し替えます
+       Notion API から動的に記事カードを生成します
+       記事はNotionのデータベースで管理・追加できます
   =================================================== -->
   <main class="posts-section">
     <div class="container">
       <p class="section-label">latest posts</p>
-      <div class="posts-grid">
+      <!-- ローディング中はスピナーを表示、取得後にJSでカードを生成 -->
+      <div class="posts-grid" id="posts-grid">
+        <p class="posts-loading">記事を読み込んでいます</p>
+      </div>
 
-        <!-- 記事カード 1 -->
-        <article class="post-card" data-post-id="post-001">
-          <p class="post-category">日常</p>
-          <h2 class="post-title">朝の支度に30分かけるようになったら、一日がすこし変わった話</h2>
-          <p class="post-excerpt">ずっとギリギリまで寝てたのに、なんとなく早起きを試してみたら思いのほか続いてる。コーヒーを飲みながら何もしない時間のこと。</p>
-          <time class="post-date" datetime="2025-04-20">April 20, 2025</time>
-          <!-- リアクションボタン -->
-          <div class="reactions" role="group" aria-label="リアクション">
-            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
-          </div>
-          <!-- コメントトグル -->
-          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
-          <!-- コメントエリア（デフォルト非表示） -->
-          <div class="comment-area" aria-hidden="true">
-            <ul class="comment-list"></ul>
-            <p class="comment-empty">まだコメントはありません</p>
-            <div class="comment-form">
-              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
-              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
-              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
-              <span class="field-error" data-for="comment">コメントを入力してください</span>
-              <button class="comment-submit">投稿する</button>
-              <p class="submit-success">✓ コメントを投稿しました</p>
-            </div>
-          </div>
-        </article>
-
-        <!-- 記事カード 2 -->
-        <article class="post-card" data-post-id="post-002">
-          <p class="post-category">おきにいり</p>
-          <h2 class="post-title">最近ずっとリピートしてるプレイリストと、その季節感について</h2>
-          <p class="post-excerpt">音楽って聴いてた場所や時間まで一緒に記憶される気がする。春になるたびに聴きたくなる曲たちをまとめてみた。</p>
-          <time class="post-date" datetime="2025-04-15">April 15, 2025</time>
-          <div class="reactions" role="group" aria-label="リアクション">
-            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
-          </div>
-          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
-          <div class="comment-area" aria-hidden="true">
-            <ul class="comment-list"></ul>
-            <p class="comment-empty">まだコメントはありません</p>
-            <div class="comment-form">
-              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
-              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
-              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
-              <span class="field-error" data-for="comment">コメントを入力してください</span>
-              <button class="comment-submit">投稿する</button>
-              <p class="submit-success">✓ コメントを投稿しました</p>
-            </div>
-          </div>
-        </article>
-
-        <!-- 記事カード 3 -->
-        <article class="post-card" data-post-id="post-003">
-          <p class="post-category">たべもの</p>
-          <h2 class="post-title">週末だけ丁寧にご飯を作る、という選択をしてみた</h2>
-          <p class="post-excerpt">平日は適当でいい。でも週末の昼くらいはちゃんと作ってみようと思って。最近ハマってる一品と、そのレシピの話。</p>
-          <time class="post-date" datetime="2025-04-10">April 10, 2025</time>
-          <div class="reactions" role="group" aria-label="リアクション">
-            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
-          </div>
-          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
-          <div class="comment-area" aria-hidden="true">
-            <ul class="comment-list"></ul>
-            <p class="comment-empty">まだコメントはありません</p>
-            <div class="comment-form">
-              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
-              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
-              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
-              <span class="field-error" data-for="comment">コメントを入力してください</span>
-              <button class="comment-submit">投稿する</button>
-              <p class="submit-success">✓ コメントを投稿しました</p>
-            </div>
-          </div>
-        </article>
-
-        <!-- 記事カード 4 -->
-        <article class="post-card" data-post-id="post-004">
-          <p class="post-category">きもち</p>
-          <h2 class="post-title">「なんとなく疲れた」が続くとき、わたしがすること3つ</h2>
-          <p class="post-excerpt">特に何かあったわけじゃないのに、なんか重い日ってある。そういうとき用の小さなルーティンを、自分なりにまとめてみた。</p>
-          <time class="post-date" datetime="2025-04-04">April 4, 2025</time>
-          <div class="reactions" role="group" aria-label="リアクション">
-            <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
-            <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
-          </div>
-          <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
-          <div class="comment-area" aria-hidden="true">
-            <ul class="comment-list"></ul>
-            <p class="comment-empty">まだコメントはありません</p>
-            <div class="comment-form">
-              <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
-              <span class="field-error" data-for="username">ユーザー名を入力してください</span>
-              <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
-              <span class="field-error" data-for="comment">コメントを入力してください</span>
-              <button class="comment-submit">投稿する</button>
-              <p class="submit-success">✓ コメントを投稿しました</p>
-            </div>
-          </div>
-        </article>
-
-      </div><!-- /.posts-grid -->
+      </div><!-- /#posts-grid -->
     </div><!-- /.container -->
   </main>
 
@@ -689,80 +585,156 @@
 
 
   <!-- ===================================================
-       JavaScript — コメント・リアクション機能
+       JavaScript — Notion記事取得 + コメント・リアクション機能
   =================================================== -->
   <script>
   /* =====================================================
-     ⚠️ Supabase 接続設定（必ず書き換えてください）
-     取得場所: Supabase管理画面 → Settings → API
+     ⚠️ 設定値（必ず書き換えてください）
   ===================================================== */
-  const SUPABASE_URL      = 'YOUR_SUPABASE_URL';      // 例: https://xxxx.supabase.co
-  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 例: eyJhbGci...
+  // Cloudflare Workers の URL（デプロイ後に取得）
+  // 例: https://your-worker.your-account.workers.dev
+  const WORKER_URL = 'YOUR_WORKER_URL';
+
+  // Supabase 接続設定
+  const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
   /* =====================================================
-     Supabase クライアントの初期化
-     URLが未設定（プレースホルダーのまま）の場合は
-     DB機能をスキップし、表示のみで動作します
+     Supabase クライアント初期化
+     未設定の場合はコメント・リアクション機能をスキップ
   ===================================================== */
   const isSupabaseReady =
     SUPABASE_URL      !== 'YOUR_SUPABASE_URL' &&
     SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
 
-  // isSupabaseReady が false の場合は db = null のままにする
   let db = null;
   if (isSupabaseReady) {
     db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
   /* =====================================================
-     ユーティリティ: 投稿日時を「○分前」形式に変換
+     ユーティリティ関数
   ===================================================== */
+
+  // 日時を「○分前」形式に変換
   function timeAgo(dateStr) {
     const diff = (Date.now() - new Date(dateStr)) / 1000;
     if (diff < 60)         return 'たった今';
-    if (diff < 3600)       return `${Math.floor(diff / 60)}分前`;
-    if (diff < 86400)      return `${Math.floor(diff / 3600)}時間前`;
-    if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}日前`;
+    if (diff < 3600)       return Math.floor(diff / 60) + '分前';
+    if (diff < 86400)      return Math.floor(diff / 3600) + '時間前';
+    if (diff < 86400 * 30) return Math.floor(diff / 86400) + '日前';
     return new Date(dateStr).toLocaleDateString('ja-JP');
   }
 
-  /* =====================================================
-     XSS対策: ユーザー入力のHTMLエスケープ
-     表示前に必ずこの関数を通す
-  ===================================================== */
+  // XSS対策: HTMLエスケープ
   function escapeHtml(str) {
     return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
 
-  /* =====================================================
-     コメントをHTMLリスト要素として生成
-  ===================================================== */
-  function createCommentEl(comment) {
-    const li = document.createElement('li');
-    li.className = 'comment-item';
-    li.innerHTML = `
-      <div class="comment-header">
-        <span class="comment-username">${escapeHtml(comment.username)}</span>
-        <time class="comment-time">${timeAgo(comment.created_at)}</time>
-      </div>
-      <p class="comment-body">${escapeHtml(comment.body)}</p>
-    `;
-    return li;
+  // 日付を「Month DD, YYYY」形式に変換
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
   /* =====================================================
-     各記事カードの初期化
-     コメント・リアクションの取得とイベント設定を行う
+     Notion から記事一覧を取得して描画する
+  ===================================================== */
+  async function loadPosts() {
+    const grid = document.getElementById('posts-grid');
+
+    // Worker URL が未設定の場合はガイダンスを表示
+    if (WORKER_URL === 'YOUR_WORKER_URL') {
+      grid.innerHTML = '<p class="posts-error">⚠️ WORKER_URL を設定してください（仕様書を参照）</p>';
+      return;
+    }
+
+    try {
+      // Cloudflare Workers 経由で記事一覧を取得
+      const res = await fetch(`${WORKER_URL}/posts`);
+      if (!res.ok) throw new Error('API error: ' + res.status);
+
+      const { posts } = await res.json();
+
+      if (!posts || posts.length === 0) {
+        grid.innerHTML = '<p class="posts-error">記事がまだありません</p>';
+        return;
+      }
+
+      // 各記事カードをHTMLとして生成
+      grid.innerHTML = posts.map(post => buildPostCard(post)).join('');
+
+      // 生成したカードにコメント・リアクション機能を初期化
+      grid.querySelectorAll('.post-card').forEach(card => {
+        initCard(card).catch(err => console.error('カード初期化エラー:', err));
+      });
+
+    } catch (err) {
+      console.error('記事取得エラー:', err);
+      grid.innerHTML = '<p class="posts-error">記事の読み込みに失敗しました。しばらくしてから再試行してください。</p>';
+    }
+  }
+
+  /* =====================================================
+     記事カードのHTMLを生成する
+     post: { id, title, date, category, excerpt, cover }
+  ===================================================== */
+  function buildPostCard(post) {
+    // カバー画像（あれば表示）
+    const coverHtml = post.cover
+      ? `<img class="post-cover" src="${escapeHtml(post.cover)}" alt="${escapeHtml(post.title)}" loading="lazy" />`
+      : '';
+
+    // 記事詳細ページへのリンク（クエリパラメータでページIDを渡す）
+    const postUrl = `post.html?id=${encodeURIComponent(post.id)}`;
+
+    return `
+      <article class="post-card" data-post-id="${escapeHtml(post.id)}">
+        ${coverHtml}
+        <p class="post-category">${escapeHtml(post.category)}</p>
+        <h2 class="post-title">
+          <a href="${postUrl}" class="post-link">${escapeHtml(post.title)}</a>
+        </h2>
+        <p class="post-excerpt">${escapeHtml(post.excerpt)}</p>
+        <time class="post-date" datetime="${escapeHtml(post.date)}">${formatDate(post.date)}</time>
+
+        <!-- リアクションボタン -->
+        <div class="reactions" role="group" aria-label="リアクション">
+          <button class="reaction-btn" data-emoji="👍" aria-label="いいね">👍 <span class="reaction-count">0</span></button>
+          <button class="reaction-btn" data-emoji="❤️" aria-label="ハート">❤️ <span class="reaction-count">0</span></button>
+          <button class="reaction-btn" data-emoji="😊" aria-label="笑顔">😊 <span class="reaction-count">0</span></button>
+        </div>
+
+        <!-- コメントトグル -->
+        <button class="comment-toggle" aria-expanded="false">💬 コメント <span class="comment-badge">0</span></button>
+
+        <!-- コメントエリア -->
+        <div class="comment-area" aria-hidden="true">
+          <ul class="comment-list"></ul>
+          <p class="comment-empty">まだコメントはありません</p>
+          <div class="comment-form">
+            <input type="text" class="input-username" placeholder="ユーザー名（必須）" maxlength="30" aria-label="ユーザー名" />
+            <span class="field-error" data-for="username">ユーザー名を入力してください</span>
+            <textarea class="input-comment" placeholder="コメントを入力してください（必須）" maxlength="500" aria-label="コメント内容"></textarea>
+            <span class="field-error" data-for="comment">コメントを入力してください</span>
+            <button class="comment-submit">投稿する</button>
+            <p class="submit-success">✓ コメントを投稿しました</p>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  /* =====================================================
+     各記事カードのコメント・リアクション機能を初期化
+     （Supabase 連携部分 — 以前のコードと同じロジック）
   ===================================================== */
   async function initCard(card) {
-    const postId = card.dataset.postId;
-
-    // DOM要素の取得
+    const postId        = card.dataset.postId;
     const commentList   = card.querySelector('.comment-list');
     const commentEmpty  = card.querySelector('.comment-empty');
     const commentBadge  = card.querySelector('.comment-badge');
@@ -776,159 +748,101 @@
     const errComment    = card.querySelector('[data-for="comment"]');
     const reactionBtns  = card.querySelectorAll('.reaction-btn');
 
-    /* ----- コメント一覧を取得して表示 ----- */
     async function loadComments() {
-      // Supabase未設定時はスキップ
       if (!db) return;
-
-      const { data, error } = await db
-        .from('comments')
-        .select('*')
-        .eq('post_id', postId)
-        .order('created_at', { ascending: true });
-
+      const { data, error } = await db.from('comments').select('*')
+        .eq('post_id', postId).order('created_at', { ascending: true });
       if (error) { console.error('コメント取得エラー:', error); return; }
-
       commentList.innerHTML = '';
-
       if (data.length === 0) {
         commentEmpty.style.display = 'block';
       } else {
         commentEmpty.style.display = 'none';
-        data.forEach(c => commentList.appendChild(createCommentEl(c)));
+        data.forEach(c => {
+          const li = document.createElement('li');
+          li.className = 'comment-item';
+          li.innerHTML =
+            '<div class="comment-header">' +
+              '<span class="comment-username">' + escapeHtml(c.username) + '</span>' +
+              '<time class="comment-time">' + timeAgo(c.created_at) + '</time>' +
+            '</div>' +
+            '<p class="comment-body">' + escapeHtml(c.body) + '</p>';
+          commentList.appendChild(li);
+        });
       }
-
       commentBadge.textContent = data.length;
     }
 
-    /* ----- リアクション数を取得して表示 ----- */
     async function loadReactions() {
-      // Supabase未設定時はスキップ
       if (!db) return;
-
-      const { data, error } = await db
-        .from('reactions')
-        .select('emoji, count')
-        .eq('post_id', postId);
-
+      const { data, error } = await db.from('reactions').select('emoji, count').eq('post_id', postId);
       if (error) { console.error('リアクション取得エラー:', error); return; }
-
       reactionBtns.forEach(btn => {
-        const emoji = btn.dataset.emoji;
-        const row   = data.find(r => r.emoji === emoji);
+        const row = data.find(r => r.emoji === btn.dataset.emoji);
         btn.querySelector('.reaction-count').textContent = row ? row.count : 0;
       });
     }
 
-    /* ----- コメントエリアの開閉トグル ----- */
     commentToggle.addEventListener('click', () => {
       const isOpen = commentArea.classList.toggle('open');
       commentToggle.setAttribute('aria-expanded', isOpen);
       commentArea.setAttribute('aria-hidden', !isOpen);
     });
 
-    /* ----- コメント投稿 ----- */
     submitBtn.addEventListener('click', async () => {
       const username = inputUsername.value.trim();
       const body     = inputComment.value.trim();
+      let hasError   = false;
 
-      // バリデーション（未入力チェック）
-      let hasError = false;
+      if (!username) { inputUsername.classList.add('error'); errUsername.style.display = 'block'; hasError = true; }
+      else           { inputUsername.classList.remove('error'); errUsername.style.display = 'none'; }
 
-      if (!username) {
-        inputUsername.classList.add('error');
-        errUsername.style.display = 'block';
-        hasError = true;
-      } else {
-        inputUsername.classList.remove('error');
-        errUsername.style.display = 'none';
-      }
-
-      if (!body) {
-        inputComment.classList.add('error');
-        errComment.style.display = 'block';
-        hasError = true;
-      } else {
-        inputComment.classList.remove('error');
-        errComment.style.display = 'none';
-      }
+      if (!body)     { inputComment.classList.add('error'); errComment.style.display = 'block'; hasError = true; }
+      else           { inputComment.classList.remove('error'); errComment.style.display = 'none'; }
 
       if (hasError) return;
+      if (!db) { alert('Supabaseの設定が完了していないため投稿できません。'); return; }
 
-      // Supabase未設定時は投稿できない旨を表示
-      if (!db) {
-        alert('Supabaseの設定が完了していないため投稿できません。\nSUPABASE_URL と SUPABASE_ANON_KEY を設定してください。');
-        return;
-      }
-
-      // 送信中はボタンを無効化
       submitBtn.disabled = true;
       submitBtn.textContent = '投稿中…';
 
-      // Supabase の comments テーブルに挿入
       const { error } = await db.from('comments').insert({
-        post_id:    postId,
-        username:   username,
-        body:       body,
-        created_at: new Date().toISOString()
+        post_id: postId, username, body, created_at: new Date().toISOString()
       });
 
       submitBtn.disabled = false;
       submitBtn.textContent = '投稿する';
 
-      if (error) {
-        console.error('コメント投稿エラー:', error);
-        alert('投稿に失敗しました。時間をおいて再試行してください。');
-        return;
-      }
+      if (error) { console.error('投稿エラー:', error); alert('投稿に失敗しました。'); return; }
 
-      // 投稿成功: フォームをリセット
       inputUsername.value = '';
       inputComment.value  = '';
       successMsg.style.display = 'block';
       setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
-
       await loadComments();
     });
 
-    /* ----- リアクションボタン（トグル動作） ----- */
     reactionBtns.forEach(btn => {
       btn.addEventListener('click', async () => {
-        // Supabase未設定時はスキップ
         if (!db) return;
-
-        const emoji    = btn.dataset.emoji;
         const isActive = btn.classList.toggle('active');
-
-        // upsert_reaction RPC を呼び出し（+1 or -1）
         const { error } = await db.rpc('upsert_reaction', {
-          p_post_id: postId,
-          p_emoji:   emoji,
-          p_delta:   isActive ? 1 : -1
+          p_post_id: postId, p_emoji: btn.dataset.emoji, p_delta: isActive ? 1 : -1
         });
-
-        if (error) {
-          console.error('リアクションエラー:', error);
-          btn.classList.toggle('active'); // エラー時は元に戻す
-          return;
-        }
-
+        if (error) { console.error('リアクションエラー:', error); btn.classList.toggle('active'); return; }
         await loadReactions();
       });
     });
 
-    // 初回データ読み込み
     await loadComments();
     await loadReactions();
   }
 
   /* =====================================================
-     ページ読み込み後に全カードを初期化
+     ページ読み込み後に記事一覧を取得して描画
   ===================================================== */
   document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.post-card').forEach(card => {
-      initCard(card).catch(err => console.error('初期化エラー:', err));
-    });
+    loadPosts();
   });
   </script>
 
